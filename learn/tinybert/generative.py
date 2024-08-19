@@ -42,6 +42,7 @@ tokenizer = AutoTokenizer.from_pretrained(model_folder_path)
 
 input_texts = [
     "The United Nations said Friday that it is 'very close' to a deal with Iran on an investigation into its suspected nuclear weapons program.",
+    "USC starts at the top Southern California greeted news of its first preseason No. 1 ranking since 1979 with ambivalence.",
     "The Dow Jones Industrial Average climbed 216 points, or 2.1%, to 10,515.",
     "Open Source Apps Developer SugarCRM Releases Sugar.Sales 1.1 (TechWeb) TechWeb - News - August 13, 2004"
 ]
