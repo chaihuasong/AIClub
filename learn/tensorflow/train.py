@@ -5,6 +5,8 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.optimizers import Adam
 from datasets import load_dataset
 
+print(tf.config.list_physical_devices('GPU'))
+
 print("加载数据集...")
 # 加载数据集
 dataset = load_dataset("ag_news")
