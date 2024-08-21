@@ -1,3 +1,8 @@
+"""
+https://ai-bot.cn/daily-ai-news/
+counter=1; for file in *.png; do base=$(basename "$file" .png) new_name=$(printf "%d" "$counter") new_name="$new_name.png" mv -v -- "$file" "$new_name" ((counter++)) done
+"""
+
 import re
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
