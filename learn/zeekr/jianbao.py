@@ -8,6 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 import random
 import shutil
+import os
 
 def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_path,
                       title_font_size=32, subtitle_font_size=24, text_font_size=20,
@@ -75,7 +76,7 @@ def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_pa
     ) + padding
 
     # 设置文本位置（垂直居中）
-    current_y = (image_height - total_text_height) / 2 - line_spacing * 9 - 10
+    current_y = (image_height - total_text_height) / 2 - line_spacing * (len(processed_pairs) + 2) - title_height / 2 - 8
 
     # 计算背景矩形的大小
     max_text_width = max(
@@ -124,37 +125,33 @@ title = f"{today_date} 前沿播报"
 
 # 小标题和正文内容的动态输入
 subtitle_content_pairs = [
-    ("谷歌开放 HeAR AI 模型 API:1亿条咳嗽声训练，辅助筛查、诊断和监测肺结核",
-     "谷歌公司于8月19 日发布博文，宣布通过 Google Cloud API，目前已经向研究人员开放健康声学表征（HealthAcoustic Representations，简称 HeAR）AI 模型。谷歌 HeAR AI 模型可以帮助人类诊断疾病，可以通过分析人的咳嗽和呼吸，诊断出疾病。"),
+    ("Midjourney网页版全面开放，每人每天25次免费试用机会",
+     "Midiourney 网页版现在对所有人开放了，每位新用户每天提供 Midjourney 最先进模型V 6.125次试用机会。用戶可使用Discord或Google账号登录，并在账户设置中合并两个平台的登录信息，确保历史记录同步。"),
 
-    ("Salesforce推出 xGen-MM 开源多模态AI模型",
-     "xGen-MM 是Salesforce推出的一款开源多模态AI模型，具有处理交错数据的能力，能同时理解和生成文本、图像等多种数据类型。xGen-MIM 通过学习大量的图片和文字信息，不仅在视觉语言任务上展现出强大的性能，还通过开源模型、数据集和微调代码库，促进模型能力的不断提升。"),
+    ("百度、商汤、智谱前三，IDC首次发布大模型平台及应用市场份额报告",
+     "国际数据公司 （IDC）于今日首次发布了《中国大模型平台市场份额，2023：大模型元年—初局》。数据显示，2023年中国大模型平台及相关应用市场规模达 17.65亿元人民币。受益于多年来在 AI领域的大力投入以及大模型的早期投入，百度智能云在2023年大模型市场规模达 3.5亿元人民币，位居市场第一，市场份额达19.9%；商汤科技位居市场第二，市场份额达 16.0%；智谱 AI 则是2023年初创企业中的胜出者，位居市场第三"),
 
-    ("OpenAI 开放GPT-40微调功能，企业可更轻松打造专属AI助手",
-     "OpenAI 推出了一项新功能，允许企业客户使用自己的数据来定制其最强大的 AI 模型 GPT-40。此举旨在应对日益激烈的AI企业应用竞争，并满足企业对 AI投资回报的更高要求。通过微调，现有 AI 模型可以针对特定任务或领域进行优化。"),
+    ("泡茶、弹琴、练咏春，星尘智能发布 AI 机器人助理 Astribot S1",
+     "Astribot 星尘智能8 月19日发布了 AI机器人助理 Astribot S1，支持泡茶、做饭、弹琴、练咏春拳等，还能 VR遥控。据星尘智能介绍，Astribot S1采用了刚柔耦合传动机构，自主研发关键零部件，搭载软硬件一体化系统架构。"),
 
-    ("PICO发布“中国版Vision Pro”，搭载的AI芯片性能暴增800%",
-     "8月20日下午，字节跳动旗下XR平台PICO推出首款MR混合现实一体机PICO 4 Ultra，硬件上搭载全新高通骁龙XR2 Gen2计算平台，拥有12GB超大内存，GPU性能相比前代XR1提升2.5倍，Al性能比XR1提升8倍。价格方面，PICO 4 Ultra消费者版本售价4299元，PICO 4 Ultra Enterprise（企业版）7499元，PICO体感追踪器售价399元一对，现已全面开启预售"),
-
-    ("iPad上最强的绘画应用 Procreate，永远不会在其产品中引入生成式AI",
-     "Procreate CEO James Cuda 宣布该应用将永不使用生成式AI技术，以保护艺术家免受其影响；Procreate 是一款受欢迎的iPad绘图应用，自2011年上线以来获得多个奖项，并广泛用于艺术和设计教育；尽管Procreate拒绝采用生成式Al，公司仍将继续使用传统的机器学习技术来优化应用功能。"),
-
-    ("EliseAI 跻身纽约独角兽行列：D轮融资7500万美元、估值超10亿美元",
-     "据VentureBeat官网报道，近日，房产科技公司 EliseAI宣布成功完成7500万美元D轮融资，此轮融资由知名风投公司 Sapphire Ventures 领投，新筹集的资金将主要用于扩充团队规模，推进产品研发。至此，EliseAI的估值超过10亿美元，成为了纽约最新的独角兽公司。")
-
+    ("微软发布Phi-3.5系列模型，性能超越Gemini 1.5 Flash与GPT-40",
+     "Phi-3.5 是微软推出的新一代AI模型系列，包含 Phi-3.5-mini-instruct、Phi-3.5-MoE-instruct 和 Phi-3.5-vision-instruct 三个版本，分别针对轻量级推理、混合专家系统和多模态任务设计。Phi-3.5采用MIT开源许可证，具有不同参数规模，支持128k上下文长度，优化了多语言处理和多轮对话能力，在基准测试中性能表现超越了GPT4O、Llama 3.1、Gemini Flash等同类模型。"),
 ]
 
 # 生成1到80之间的随机整数
-random_number = random.randint(1,  80)
-print(random_number)
+# random_number = random.randint(1,  80)
+# print(random_number)
 # 背景图片路径和输出图片路径
-background_img_path = '/Users/chaihuasong/Documents/AI/resources/pic2/' + str(random_number) + ".png"
-output_image_path = '../../learn/data/zeekr/img/' + str(random_number) + ".png"
+background_img_path = '/Users/chaihuasong/Documents/AI/resources/pic3/'
+output_image_path = '../../learn/data/zeekr/img/'
 
-print(output_image_path)
-# 在背景图片上添加文本并保存
-add_text_to_image(background_img_path, title, subtitle_content_pairs, output_image_path)
-
-
-# 拷贝文件
-shutil.move(output_image_path,  '/Users/chaihuasong/Documents/AI/resources/out/' + str(random_number) + ".png")
+# 遍历文件夹
+for filename in os.listdir(background_img_path):
+    if filename.endswith('.png'):
+        full_path = os.path.join(background_img_path, filename)
+        output_full_path = os.path.join(output_image_path, filename)
+        print(full_path)
+        # 在背景图片上添加文本并保存
+        add_text_to_image(full_path, title, subtitle_content_pairs, output_full_path)
+        # 移动文件
+        shutil.move(output_full_path, '/Users/chaihuasong/Documents/AI/resources/out/1/')
