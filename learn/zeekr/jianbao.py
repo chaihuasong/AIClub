@@ -136,7 +136,7 @@ def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_pa
         ) for subtitle_lines, content_lines in processed_pairs]
     )
     bg_width = max_text_width + 2 * padding
-    bg_height = total_text_height * 3 / 2 - len(processed_pairs) * 50 + line_spacing
+    bg_height = total_text_height * 3 / 2 - len(processed_pairs) * 50 + line_spacing * 2
 
     # 绘制半透明背景矩形
     bg_x = (image_width - bg_width) / 2
@@ -170,7 +170,7 @@ def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_pa
 today_date = datetime.now().strftime("%Y-%m-%d")
 
 # 构建标题
-title = f"{today_date} 前沿播报"
+title = f"{today_date} AI 前沿播报"
 
 # 生成1到80之间的随机整数
 # random_number = random.randint(1,  80)
