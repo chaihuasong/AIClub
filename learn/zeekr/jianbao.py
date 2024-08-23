@@ -6,14 +6,58 @@ counter=1; for file in *.png; do base=$(basename "$file" .png); new_name=$(print
 import re
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
-import random
+# import random
 import shutil
 import os
+
+# 背景图片路径和输出图片路径
+background_img_path = '/Users/chaihuasong/Documents/AI/resources/pic4/'
+output_image_path = '../../learn/data/zeekr/img/'
+
+def read_pairs_from_file(file_path):
+    subtitle_content_pairs = []
+    with open(file_path, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+
+    i = 0
+    while i < len(lines):
+        # 跳过空行
+        while i < len(lines) and not lines[i].strip():
+            i += 1
+
+            # 检查是否已经到达文件末尾
+        if i >= len(lines):
+            break
+
+            # 读取key行
+        key = lines[i].strip()
+        i += 1
+
+        # 跳过key行后的空行
+        while i < len(lines) and not lines[i].strip():
+            i += 1
+
+            # 检查是否已经到达文件末尾
+        if i >= len(lines):
+            break
+
+            # 读取content行
+        content = lines[i].strip()
+        i += 1
+
+        # 将key和content添加到pairs列表中
+        subtitle_content_pairs.append((key, content))
+
+    return subtitle_content_pairs
+
+# 使用示例
+file_path = 'data.txt'
+subtitle_content_pairs = read_pairs_from_file(file_path)
 
 def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_path,
                       title_font_size=32, subtitle_font_size=24, text_font_size=20,
                       text_color=(255, 255, 255), bg_color=(0, 0, 0, 128),
-                      padding=18, line_spacing=15, max_line_length=56, content_max_line_length=64):
+                      padding=20, line_spacing=12, max_line_length=62, content_max_line_length=72):
     # 打开背景图片
     image = Image.open(image_path).convert("RGBA")
     overlay = Image.new("RGBA", image.size, (255, 255, 255, 0))
@@ -36,10 +80,15 @@ def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_pa
 
     # 定义字符宽度函数
     def char_width(c):
-        if '\u4e00' <= c <= '\u9fff':  # 判断是否为中文字符
+        # 常见的中文标点符号
+        chinese_punctuations = {
+            '，', '。', '！', '？', '；', '：', '“', '”', '‘', '’', '（', '）', '《', '》', '【', '】', '—', '…', '～', '、'
+        }
+
+        # 判断是否为中文字符或中文标点符号
+        if '\u4e00' <= c <= '\u9fff' or c in chinese_punctuations:
             return 2
         return 1
-
         # 定义分割字符串函数
 
     def split_text(text, max_line_length):
@@ -76,7 +125,7 @@ def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_pa
     ) + padding
 
     # 设置文本位置（垂直居中）
-    current_y = (image_height - total_text_height) / 2 - line_spacing * (len(processed_pairs) + 2) - title_height / 2 - 8
+    current_y = (image_height - total_text_height) / 2 - line_spacing * len(processed_pairs) - title_height / 2
 
     # 计算背景矩形的大小
     max_text_width = max(
@@ -87,7 +136,7 @@ def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_pa
         ) for subtitle_lines, content_lines in processed_pairs]
     )
     bg_width = max_text_width + 2 * padding
-    bg_height = total_text_height * 3 / 2 - len(processed_pairs) * 42 + line_spacing
+    bg_height = total_text_height * 3 / 2 - len(processed_pairs) * 50 + line_spacing
 
     # 绘制半透明背景矩形
     bg_x = (image_width - bg_width) / 2
@@ -123,27 +172,14 @@ today_date = datetime.now().strftime("%Y-%m-%d")
 # 构建标题
 title = f"{today_date} 前沿播报"
 
-# 小标题和正文内容的动态输入
-subtitle_content_pairs = [
-    ("Midjourney网页版全面开放，每人每天25次免费试用机会",
-     "Midiourney 网页版现在对所有人开放了，每位新用户每天提供 Midjourney 最先进模型V 6.125次试用机会。用戶可使用Discord或Google账号登录，并在账户设置中合并两个平台的登录信息，确保历史记录同步。"),
-
-    ("百度、商汤、智谱前三，IDC首次发布大模型平台及应用市场份额报告",
-     "国际数据公司 （IDC）于今日首次发布了《中国大模型平台市场份额，2023：大模型元年—初局》。数据显示，2023年中国大模型平台及相关应用市场规模达 17.65亿元人民币。受益于多年来在 AI领域的大力投入以及大模型的早期投入，百度智能云在2023年大模型市场规模达 3.5亿元人民币，位居市场第一，市场份额达19.9%；商汤科技位居市场第二，市场份额达 16.0%；智谱 AI 则是2023年初创企业中的胜出者，位居市场第三"),
-
-    ("泡茶、弹琴、练咏春，星尘智能发布 AI 机器人助理 Astribot S1",
-     "Astribot 星尘智能8 月19日发布了 AI机器人助理 Astribot S1，支持泡茶、做饭、弹琴、练咏春拳等，还能 VR遥控。据星尘智能介绍，Astribot S1采用了刚柔耦合传动机构，自主研发关键零部件，搭载软硬件一体化系统架构。"),
-
-    ("微软发布Phi-3.5系列模型，性能超越Gemini 1.5 Flash与GPT-40",
-     "Phi-3.5 是微软推出的新一代AI模型系列，包含 Phi-3.5-mini-instruct、Phi-3.5-MoE-instruct 和 Phi-3.5-vision-instruct 三个版本，分别针对轻量级推理、混合专家系统和多模态任务设计。Phi-3.5采用MIT开源许可证，具有不同参数规模，支持128k上下文长度，优化了多语言处理和多轮对话能力，在基准测试中性能表现超越了GPT4O、Llama 3.1、Gemini Flash等同类模型。"),
-]
-
 # 生成1到80之间的随机整数
 # random_number = random.randint(1,  80)
 # print(random_number)
-# 背景图片路径和输出图片路径
-background_img_path = '/Users/chaihuasong/Documents/AI/resources/pic3/'
-output_image_path = '../../learn/data/zeekr/img/'
+
+dst_dir = '/Users/chaihuasong/Documents/AI/resources/out/' + today_date + '/'
+
+# 创建新文件夹
+os.makedirs(dst_dir, exist_ok=True)
 
 # 遍历文件夹
 for filename in os.listdir(background_img_path):
@@ -154,4 +190,4 @@ for filename in os.listdir(background_img_path):
         # 在背景图片上添加文本并保存
         add_text_to_image(full_path, title, subtitle_content_pairs, output_full_path)
         # 移动文件
-        shutil.move(output_full_path, '/Users/chaihuasong/Documents/AI/resources/out/1/')
+        shutil.move(output_full_path, dst_dir)
