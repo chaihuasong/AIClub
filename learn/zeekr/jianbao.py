@@ -57,7 +57,7 @@ subtitle_content_pairs = read_pairs_from_file(file_path)
 def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_path,
                       title_font_size=32, subtitle_font_size=24, text_font_size=20,
                       text_color=(255, 255, 255), bg_color=(0, 0, 0, 128),
-                      padding=20, line_spacing=12, max_line_length=62, content_max_line_length=72):
+                      padding=20, line_spacing=12, max_line_length=61, content_max_line_length=71):
     # 打开背景图片
     image = Image.open(image_path).convert("RGBA")
     overlay = Image.new("RGBA", image.size, (255, 255, 255, 0))
@@ -125,7 +125,7 @@ def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_pa
     ) + padding
 
     # 设置文本位置（垂直居中）
-    current_y = (image_height - total_text_height) / 2 - line_spacing * len(processed_pairs) - title_height / 2
+    current_y = (image_height - total_text_height) / 2 - line_spacing * (len(processed_pairs) + 1) - title_height - 5
 
     # 计算背景矩形的大小
     max_text_width = max(
