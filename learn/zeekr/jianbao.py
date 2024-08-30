@@ -57,7 +57,7 @@ subtitle_content_pairs = read_pairs_from_file(file_path)
 def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_path,
                       title_font_size=32, subtitle_font_size=24, text_font_size=20,
                       text_color=(255, 255, 255), bg_color=(0, 0, 0, 128),
-                      padding=20, line_spacing=12, max_line_length=61, content_max_line_length=71):
+                      padding=20, line_spacing=12, max_line_length=58, content_max_line_length=72):
     # 打开背景图片
     image = Image.open(image_path).convert("RGBA")
     overlay = Image.new("RGBA", image.size, (255, 255, 255, 0))
