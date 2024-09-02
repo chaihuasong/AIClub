@@ -57,7 +57,7 @@ subtitle_content_pairs = read_pairs_from_file(file_path)
 def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_path,
                       title_font_size=32, subtitle_font_size=24, text_font_size=20,
                       text_color=(255, 255, 255), bg_color=(0, 0, 0, 128),
-                      padding=20, line_spacing=12, max_line_length=58, content_max_line_length=72):
+                      padding=15, line_spacing=8):
     # 打开背景图片
     image = Image.open(image_path).convert("RGBA")
     overlay = Image.new("RGBA", image.size, (255, 255, 255, 0))
@@ -73,59 +73,58 @@ def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_pa
     # 获取图片尺寸
     image_width, image_height = image.size
 
-    # 处理标题文本
-    title_lines = re.findall(f'.{{1,{max_line_length}}}', title)
-    title_height = sum(draw.textbbox((0, 0), line, font=title_font)[3] for line in title_lines) + (len(title_lines) - 1) * line_spacing
-
-
     # 定义字符宽度函数
     def char_width(c):
-        # 常见的中文标点符号
         chinese_punctuations = {
             '，', '。', '！', '？', '；', '：', '“', '”', '‘', '’', '（', '）', '《', '》', '【', '】', '—', '…', '～', '、'
         }
-
-        # 判断是否为中文字符或中文标点符号
         if '\u4e00' <= c <= '\u9fff' or c in chinese_punctuations:
             return 2
         return 1
-        # 定义分割字符串函数
 
-    def split_text(text, max_line_length):
+    # 定义分割字符串函数
+    def split_text(text, max_width, font):
         result = []
         current_line = ""
-        current_length = 0
         for char in text:
-            char_len = char_width(char)
-            if current_length + char_len <= max_line_length:
+            if current_line and current_line[-1] in '，。！？，：；':
+                if draw.textbbox((0, 0), current_line + char, font=font)[2] <= max_width:
+                    current_line += char
+                else:
+                    result.append(current_line)
+                    current_line = char
+            elif draw.textbbox((0, 0), current_line + char, font=font)[2] <= max_width:
                 current_line += char
-                current_length += char_len
             else:
                 result.append(current_line)
                 current_line = char
-                current_length = char_len
-        result.append(current_line)  # 添加最后一行
+
+        if current_line:
+            result.append(current_line)
         return result
 
-        # 处理小标题和正文内容
+    # 处理标题文本
+    title_lines = split_text(title, image_width - 2 * padding, title_font)
+    title_height = sum(draw.textbbox((0, 0), line, font=title_font)[3] for line in title_lines) + (len(title_lines) - 1) * line_spacing
 
+    # 处理小标题和正文内容
     processed_pairs = []
+    content_height = 0
     for subtitle, content in subtitle_content_pairs:
-        subtitle_lines = split_text(subtitle, max_line_length)
-        content_lines = split_text(content, content_max_line_length)
+        subtitle_lines = split_text(subtitle, image_width - 2 * padding, subtitle_font)
+        content_lines = split_text(content, image_width - 2 * padding, text_font)
         processed_pairs.append((subtitle_lines, content_lines))
+        content_height += sum(draw.textbbox((0, 0), line, font=subtitle_font)[3] for line in subtitle_lines)
+        content_height += sum(draw.textbbox((0, 0), line, font=text_font)[3] for line in content_lines)
+        content_height += 2 * line_spacing
 
+    # 计算所有文本的总高度
+    total_text_height = title_height + content_height + padding * 4
 
-        # 计算所有文本的总高度
-    total_text_height = title_height + padding + sum(
-        sum(draw.textbbox((0, 0), line, font=subtitle_font)[3] for line in subtitle_lines) +
-        sum(draw.textbbox((0, 0), line, font=text_font)[3] for line in content_lines) +
-        2 * line_spacing + line_spacing  # 为每个内容结束后增加行间距
-        for subtitle_lines, content_lines in processed_pairs
-    ) + padding
-
-    # 设置文本位置（垂直居中）
-    current_y = (image_height - total_text_height) / 2 - line_spacing * (len(processed_pairs) + 1) - title_height - 5
+    # 确保文本总高度不超过图片高度
+    if total_text_height > image_height:
+        line_spacing = max(2, int(line_spacing * image_height / total_text_height))
+        total_text_height = title_height + content_height + padding * 4 + line_spacing * (len(processed_pairs) + len(title_lines))
 
     # 计算背景矩形的大小
     max_text_width = max(
@@ -136,12 +135,13 @@ def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_pa
         ) for subtitle_lines, content_lines in processed_pairs]
     )
     bg_width = max_text_width + 2 * padding
-    bg_height = total_text_height * 3 / 2 - len(processed_pairs) * 50 + line_spacing * 2
+    bg_height = total_text_height + (len(processed_pairs) + 1) * (line_spacing + padding) + line_spacing * 3 + 5
+
+    current_y = (image_height - bg_height) / 2
 
     # 绘制半透明背景矩形
     bg_x = (image_width - bg_width) / 2
-    draw.rectangle([bg_x, current_y - padding, bg_x + bg_width, current_y + bg_height],
-                   fill=bg_color)
+    draw.rectangle([bg_x, current_y - padding, bg_x + bg_width, current_y + bg_height - padding], fill=bg_color)
 
     # 绘制标题
     for line in title_lines:
@@ -158,13 +158,14 @@ def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_pa
         for line in content_lines:
             draw.text((bg_x + padding, current_y), line, fill=text_color, font=text_font)
             current_y += draw.textbbox((0, 0), line, font=text_font)[3] + line_spacing
-        current_y += line_spacing  # 每个内容结束后添加额外的行间距
+        current_y += line_spacing
 
     # 将透明图层与背景图像合并
     combined = Image.alpha_composite(image, overlay).convert("RGB")
 
     # 保存带有文本和半透明背景的图片
     combined.save(output_image_path)
+
 
 # 获取当天日期并格式化为 YYYY-MM-DD
 today_date = datetime.now().strftime("%Y-%m-%d")
