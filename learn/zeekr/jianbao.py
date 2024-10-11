@@ -55,9 +55,9 @@ file_path = 'data.txt'
 subtitle_content_pairs = read_pairs_from_file(file_path)
 
 def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_path,
-                      title_font_size=32, subtitle_font_size=24, text_font_size=20,
-                      text_color=(255, 255, 255), bg_color=(0, 0, 0, 128),
-                      padding=15, line_spacing=8):
+                      title_font_size=32, subtitle_font_size=25, text_font_size=22,
+                      text_color=(255, 255, 255), bg_color=(0, 0, 0, 168),
+                      padding=15, line_spacing=12):
     # 打开背景图片
     image = Image.open(image_path).convert("RGBA")
     overlay = Image.new("RGBA", image.size, (255, 255, 255, 0))
@@ -135,9 +135,9 @@ def add_text_to_image(image_path, title, subtitle_content_pairs, output_image_pa
         ) for subtitle_lines, content_lines in processed_pairs]
     )
     bg_width = max_text_width + 2 * padding
-    bg_height = total_text_height + (len(processed_pairs) + 1) * (line_spacing + padding) + line_spacing * 3 + 5
+    bg_height = total_text_height + len(processed_pairs) * (line_spacing + padding) * 2
 
-    current_y = (image_height - bg_height) / 2
+    current_y = (image_height - bg_height) / 2 + 10
 
     # 绘制半透明背景矩形
     bg_x = (image_width - bg_width) / 2
